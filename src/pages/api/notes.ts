@@ -1,32 +1,43 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiRequest, NextApiResponse } from "next";
+import { db } from "@/firebaseConfig";
+import { collection, addDoc, deleteDoc, doc, getDocs, updateDoc } from "firebase/firestore";
 
-// Simulación de base de datos en memoria
-let notes = [
-  {
-    id: "1",
-    title: "Ejemplo",
-    content: "Esta es una nota de prueba",
-    color: "bg-yellow-300",
-  },
-];
+interface Note {
+  id?: string;
+  title: string;
+  content: string;
+  color: string;
+}
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
-    res.status(200).json(notes);
-  } else if (req.method === "POST") {
-    const newNote = req.body;
-    notes.push(newNote);
-    res.status(201).json(newNote);
-  } else if (req.method === "DELETE") {
-    const { id } = req.body;
-
-    if (!id) {
-      return res.status(400).json({ message: "ID de nota requerido" });
-    }
-
-    notes = notes.filter((note) => note.id !== id);
-    res.status(200).json({ message: "Nota eliminada correctamente" });
-  } else {
-    res.status(405).json({ message: "Método no permitido" });
+    const querySnapshot = await getDocs(collection(db, "notes"));
+    const notes = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    return res.status(200).json(notes);
   }
+
+  if (req.method === "POST") {
+    const { title, content, color } = req.body as Note;
+    const docRef = await addDoc(collection(db, "notes"), { title, content, color });
+    return res.status(201).json({ id: docRef.id, title, content, color });
+  }
+
+  if (req.method === "DELETE") {
+    const { id } = req.query;
+    if (typeof id !== "string") return res.status(400).json({ error: "Invalid ID" });
+
+    await deleteDoc(doc(db, "notes", id));
+    return res.status(204).end();
+  }
+
+  if (req.method === "PUT") {
+    const { id, key, value } = req.body;
+    if (!id || !key || value === undefined)
+      return res.status(400).json({ error: "Missing parameters" });
+
+    await updateDoc(doc(db, "notes", id), { [key]: value });
+    return res.status(200).json({ id, key, value });
+  }
+
+  return res.status(405).json({ error: "Method not allowed" });
 }

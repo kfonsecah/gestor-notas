@@ -1,53 +1,59 @@
 import { useNotes } from "@/context/NotesContext";
+import { useState, useEffect } from "react";
 
 export default function Home() {
   const { state, dispatch } = useNotes();
+  const [debouncedChanges, setDebouncedChanges] = useState<{ id: string; key: "title" | "content"; value: string } | null>(null);
+
+  
+  useEffect(() => {
+    if (debouncedChanges) {
+      const timeout = setTimeout(async () => {
+        const { id, key, value } = debouncedChanges;
+        await fetch("/api/notes", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id, key, value }),
+        });
+
+        
+      }, 500); 
+
+      return () => clearTimeout(timeout); 
+    }
+  }, [debouncedChanges]);
 
   const addNote = async () => {
     const newNote = {
-      id: Date.now().toString(),
       title: "Nueva Nota",
       content: "Haz doble clic para editar...",
-      color: ["bg-yellow-300", "bg-green-300", "bg-blue-300", "bg-pink-300"][
-        Math.floor(Math.random() * 4)
-      ],
+      color: ["bg-yellow-300", "bg-green-300", "bg-blue-300", "bg-pink-300"][Math.floor(Math.random() * 4)],
     };
 
     const res = await fetch("/api/notes", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: "secreto" },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newNote),
     });
 
-    if (res.ok) {
-      dispatch({ type: "ADD_NOTE", payload: newNote });
-    }
+    const note = await res.json();
+    dispatch({ type: "ADD_NOTE", payload: note });
   };
 
   const deleteNote = async (id: string) => {
-    console.log("Intentando borrar la nota con ID:", id);
+    await fetch(`/api/notes?id=${id}`, { method: "DELETE" });
+    dispatch({ type: "DELETE_NOTE", payload: id });
+  };
 
-    const res = await fetch("/api/notes", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json", Authorization: "secreto" },
-      body: JSON.stringify({ id }),
-    });
+  const editNote = (id: string, key: "title" | "content", value: string) => {
+    dispatch({ type: "EDIT_NOTE", payload: { id, key, value } });
 
-    const data = await res.json();
-    console.log("Respuesta del servidor:", data);
-
-    if (res.ok) {
-      dispatch({ type: "DELETE_NOTE", payload: id });
-    } else {
-      console.error("Error al eliminar nota:", data.message);
-    }
+    setDebouncedChanges({ id, key, value });
   };
 
   return (
     <div className="min-h-screen bg-gray-200 flex flex-col items-center p-8">
-      <h1 className="text-4xl font-bold text-gray-700 mb-6">
-        📝 Pizarra de Notas
-      </h1>
+      <h1 className="text-4xl font-bold text-gray-700 mb-6">📝 Pizarra de Notas</h1>
       <button
         onClick={addNote}
         className="bg-green-500 text-white px-6 py-2 rounded-md shadow-lg hover:bg-green-600 transition"
@@ -69,26 +75,12 @@ export default function Home() {
             <input
               className="bg-transparent text-lg font-bold w-full outline-none"
               value={note.title}
-              onChange={(e) =>
-                dispatch({
-                  type: "EDIT_NOTE",
-                  payload: { id: note.id, key: "title", value: e.target.value },
-                })
-              }
+              onChange={(e) => editNote(note.id, "title", e.target.value)}
             />
             <textarea
               className="bg-transparent text-sm w-full h-28 outline-none resize-none"
               value={note.content}
-              onChange={(e) =>
-                dispatch({
-                  type: "EDIT_NOTE",
-                  payload: {
-                    id: note.id,
-                    key: "content",
-                    value: e.target.value,
-                  },
-                })
-              }
+              onChange={(e) => editNote(note.id, "content", e.target.value)}
             />
           </div>
         ))}
