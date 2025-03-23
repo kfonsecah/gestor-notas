@@ -52,8 +52,8 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-200 flex flex-col items-center p-8">
-      <h1 className="text-4xl font-bold text-gray-700 mb-6">📝 Pizarra de Notas</h1>
+    <div className="min-h-screen bg-gray-200 flex flex-col items-center p-8" style={{backgroundColor: "#33735a", backgroundSize: "cover"}}>
+      <h1 className="text-4xl font-bold mb-6 text-[#f5f5dc]">📝 Pizarra de Notas</h1>
       <button
         onClick={addNote}
         className="bg-green-500 text-white px-6 py-2 rounded-md shadow-lg hover:bg-green-600 transition"
