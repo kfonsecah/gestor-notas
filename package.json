@@ -8,11 +8,11 @@
     "start": "next start",
     "lint": "eslint --fix .",
     "format": "prettier --write .",
-    "spell-check": "cspell --no-progress '**/*.ts' '**/*.tsx'"
+    "spell-check": "cspell --no-progress \"**/*.ts\" \"**/*.tsx\""
   },
   "dependencies": {
     "firebase": "^11.5.0",
-    "next": "15.2.3",
+    "next": "15.2.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
@@ -22,8 +22,10 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "cspell": "^8.18.0",
     "eslint": "^9",
-    "eslint-config-next": "15.2.3",
+    "eslint-config-next": "15.2.4",
+    "prettier": "^3.5.3",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

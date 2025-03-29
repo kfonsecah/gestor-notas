@@ -1,4 +1,12 @@
-import { createContext, useContext, useEffect, useReducer, ReactNode } from "react";
+"use client";
+
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useReducer,
+  ReactNode,
+} from "react";
 
 interface Note {
   id: string;
@@ -15,7 +23,10 @@ type Action =
   | { type: "SET_NOTES"; payload: Note[] }
   | { type: "ADD_NOTE"; payload: Note }
   | { type: "DELETE_NOTE"; payload: string }
-  | { type: "EDIT_NOTE"; payload: { id: string; key: "title" | "content"; value: string } };
+  | {
+      type: "EDIT_NOTE";
+      payload: { id: string; key: "title" | "content"; value: string };
+    };
 
 const notesReducer = (state: NotesState, action: Action): NotesState => {
   switch (action.type) {
@@ -24,11 +35,15 @@ const notesReducer = (state: NotesState, action: Action): NotesState => {
     case "ADD_NOTE":
       return { notes: [...state.notes, action.payload] };
     case "DELETE_NOTE":
-      return { notes: state.notes.filter((note) => note.id !== action.payload) };
+      return {
+        notes: state.notes.filter((note) => note.id !== action.payload),
+      };
     case "EDIT_NOTE":
       return {
         notes: state.notes.map((note) =>
-          note.id === action.payload.id ? { ...note, [action.payload.key]: action.payload.value } : note
+          note.id === action.payload.id
+            ? { ...note, [action.payload.key]: action.payload.value }
+            : note,
         ),
       };
     default:
@@ -36,9 +51,9 @@ const notesReducer = (state: NotesState, action: Action): NotesState => {
   }
 };
 
-const NotesContext = createContext<{ state: NotesState; dispatch: React.Dispatch<Action> } | undefined>(
-  undefined
-);
+const NotesContext = createContext<
+  { state: NotesState; dispatch: React.Dispatch<Action> } | undefined
+>(undefined);
 
 export const NotesProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(notesReducer, { notes: [] });
@@ -53,7 +68,11 @@ export const NotesProvider = ({ children }: { children: ReactNode }) => {
     fetchNotes();
   }, []);
 
-  return <NotesContext.Provider value={{ state, dispatch }}>{children}</NotesContext.Provider>;
+  return (
+    <NotesContext.Provider value={{ state, dispatch }}>
+      {children}
+    </NotesContext.Provider>
+  );
 };
 
 export const useNotes = () => {
