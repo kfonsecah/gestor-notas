@@ -5,7 +5,7 @@ import { useNotes } from "@/context/NotesContext";
 
 type EditData = {
   id: string;
-  key: "title" | "content";
+  key: "title" | "content" | "category" | "color";
   value: string;
 };
 
@@ -29,10 +29,11 @@ export const useNoteActions = () => {
     }
   }, [debouncedChanges]);
 
-  const addNote = async () => {
+  const addNote = async (category: string) => {
     const newNote = {
       title: "Nueva Nota",
       content: "Haz doble clic para editar...",
+      category,
       color: ["bg-yellow-300", "bg-green-300", "bg-blue-300", "bg-pink-300"][
         Math.floor(Math.random() * 4)
       ],
@@ -53,7 +54,7 @@ export const useNoteActions = () => {
     dispatch({ type: "DELETE_NOTE", payload: id });
   };
 
-  const editNote = (id: string, key: "title" | "content", value: string) => {
+  const editNote = (id: string, key: EditData["key"], value: string) => {
     dispatch({ type: "EDIT_NOTE", payload: { id, key, value } });
     setDebouncedChanges({ id, key, value });
   };

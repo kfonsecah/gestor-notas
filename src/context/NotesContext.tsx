@@ -13,6 +13,7 @@ interface Note {
   title: string;
   content: string;
   color: string;
+  category: string;
 }
 
 type NotesState = {
@@ -25,7 +26,7 @@ type Action =
   | { type: "DELETE_NOTE"; payload: string }
   | {
       type: "EDIT_NOTE";
-      payload: { id: string; key: "title" | "content"; value: string };
+      payload: { id: string; key: keyof Note; value: string };
     };
 
 const notesReducer = (state: NotesState, action: Action): NotesState => {
@@ -77,8 +78,6 @@ export const NotesProvider = ({ children }: { children: ReactNode }) => {
 
 export const useNotes = () => {
   const context = useContext(NotesContext);
-  if (!context) {
-    throw new Error("useNotes must be used within a NotesProvider");
-  }
+  if (!context) throw new Error("useNotes must be used within a NotesProvider");
   return context;
 };
